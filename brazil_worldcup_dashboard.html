@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brazil FIFA World Cup Journey Dashboard (1930–2022)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --color-bg: #0d1f0f;
+    --color-bg2: #122115;
+    --color-bg3: #172e1a;
+    --color-card: #1a2e1c;
+    --color-border: rgba(255,255,255,0.09);
+    --color-border2: rgba(255,255,255,0.14);
+    --color-text: #e8f0e9;
+    --color-muted: #7a9e7e;
+    --color-yellow: #f4e04b;
+    --color-green: #22c55e;
+    --color-accent: #155d27;
+    --color-accent2: #2d8a40;
+    --font: 'Segoe UI', system-ui, sans-serif;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  body { background: var(--color-bg); color: var(--color-text); font-family: var(--font); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+  .db { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+  /* HEADER */
+  .hdr { background: linear-gradient(135deg, #0a3d1f 0%, #155d27 50%, #1a7431 100%); border-radius: var(--radius-lg); padding: 1.5rem 2rem; margin-bottom: 1rem; border: 0.5px solid var(--color-accent2); position: relative; overflow: hidden; }
+  .hdr::before { content:''; position:absolute; top:-60px; right:-60px; width:200px; height:200px; border-radius:50%; background:rgba(244,224,75,0.06); pointer-events:none; }
+  .hdr-top { display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .flag { font-size:30px; }
+  .hdr-title { font-size:21px; font-weight:600; color:var(--color-yellow); letter-spacing:0.2px; }
+  .hdr-sub { font-size:13px; color:#9edd8a; margin-bottom:1rem; font-style:italic; }
+  .hdr-kpis { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+  .hdr-kpi { background:rgba(0,0,0,0.3); border-radius:8px; padding:10px 14px; border:0.5px solid rgba(255,255,255,0.12); }
+  .hdr-kpi .lbl { font-size:11px; color:#9edd8a; margin-bottom:3px; }
+  .hdr-kpi .val { font-size:21px; font-weight:600; color:var(--color-yellow); }
+
+  /* AUTHOR BADGE */
+  .author-bar { display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-bottom:1rem; padding:8px 14px; background:var(--color-card); border-radius:var(--radius); border:0.5px solid var(--color-border2); }
+  .author-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#155d27,#2d8a40); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:var(--color-yellow); flex-shrink:0; border:1.5px solid var(--color-accent2); }
+  .author-info { display:flex; flex-direction:column; gap:1px; }
+  .author-name { font-size:13px; font-weight:600; color:var(--color-text); }
+  .author-role { font-size:11px; color:var(--color-muted); }
+  .author-badge { font-size:10px; padding:2px 8px; border-radius:10px; background:rgba(21,93,39,0.35); color:#9edd8a; border:0.5px solid var(--color-accent2); }
+
+  /* SECTION */
+  .sec-title { font-size:11px; font-weight:600; color:var(--color-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+
+  /* MAP */
+  .map-wrap { background:var(--color-card); border-radius:var(--radius-lg); border:0.5px solid var(--color-border); padding:1rem; margin-bottom:1rem; }
+  #world-map { width:100%; height:360px; position:relative; overflow:hidden; border-radius:8px; background:#0d1a0f; }
+  #world-map svg { width:100%; height:100%; }
+  .map-controls { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; align-items:center; }
+  .mc-btn { font-size:12px; padding:4px 12px; border-radius:20px; border:0.5px solid var(--color-border2); background:transparent; color:var(--color-muted); cursor:pointer; transition:all 0.15s; }
+  .mc-btn:hover, .mc-btn.active { background:var(--color-accent); color:var(--color-yellow); border-color:var(--color-accent2); }
+  .map-legend { display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--color-muted); margin-top:8px; }
+  .leg-item { display:flex; align-items:center; gap:5px; }
+  .leg-dot { width:10px; height:10px; border-radius:50%; }
+  #map-tooltip { position:absolute; background:#1a2e1c; border:0.5px solid var(--color-border2); border-radius:8px; padding:10px 14px; font-size:12px; pointer-events:none; opacity:0; transition:opacity 0.2s; z-index:100; max-width:230px; }
+  .tt-year { font-weight:600; color:var(--color-yellow); font-size:13px; }
+  .tt-score { font-size:15px; font-weight:600; margin:4px 0; color:var(--color-text); }
+  .tt-W { color:#22c55e; } .tt-D { color:#f59e0b; } .tt-L { color:#ef4444; }
+
+  /* FILTERS */
+  .filters-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  select { font-size:12px; padding:5px 10px; border-radius:7px; border:0.5px solid var(--color-border2); background:var(--color-card); color:var(--color-text); cursor:pointer; }
+  select:focus { outline:none; border-color:var(--color-accent2); }
+
+  /* KPI */
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-bottom:1rem; }
+  .kpi-card { background:var(--color-card); border-radius:var(--radius); padding:12px 14px; border:0.5px solid var(--color-border); }
+  .kpi-icon { font-size:18px; margin-bottom:4px; }
+  .kpi-lbl { font-size:11px; color:var(--color-muted); margin-bottom:2px; }
+  .kpi-val { font-size:22px; font-weight:600; color:var(--color-text); }
+  .kpi-sub { font-size:11px; color:var(--color-muted); }
+
+  /* TIMELINE */
+  .timeline-wrap { background:var(--color-card); border-radius:var(--radius-lg); border:0.5px solid var(--color-border); padding:1rem 1.25rem; margin-bottom:1rem; }
+  .tl-slider-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .tl-year-lbl { font-size:24px; font-weight:700; color:var(--color-yellow); min-width:64px; }
+  input[type=range] { flex:1; accent-color:var(--color-accent2); }
+  .tl-info { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:8px; }
+  .tl-stat { background:var(--color-bg3); border-radius:8px; padding:8px 12px; border:0.5px solid var(--color-border); text-align:center; }
+  .ts-lbl { font-size:11px; color:var(--color-muted); }
+  .ts-val { font-size:15px; font-weight:600; color:var(--color-text); }
+  .outcome-badge { display:inline-block; font-size:11px; padding:3px 10px; border-radius:12px; font-weight:600; margin-top:8px; }
+  .ob-champion { background:rgba(21,93,39,0.3); color:#9edd8a; border:0.5px solid var(--color-accent2); }
+  .ob-runner   { background:rgba(186,117,23,0.25); color:#fac775; border:0.5px solid #ba7517; }
+  .ob-semi     { background:rgba(24,95,165,0.25); color:#85b7eb; border:0.5px solid #185fa5; }
+  .ob-quarter  { background:rgba(99,153,34,0.2); color:#97c459; border:0.5px solid #3b6d11; }
+  .ob-group    { background:rgba(136,135,128,0.2); color:#888780; border:0.5px solid #5f5e5a; }
+  .ob-early    { background:rgba(163,45,45,0.2); color:#f09595; border:0.5px solid #a32d2d; }
+
+  /* JOURNEY */
+  .journey-wrap { background:var(--color-card); border-radius:var(--radius-lg); border:0.5px solid var(--color-border); padding:1rem; margin-bottom:1rem; height:100%; }
+  .jf-stage { display:flex; gap:10px; align-items:stretch; }
+  .jf-connector { display:flex; flex-direction:column; align-items:center; }
+  .jf-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; margin-top:14px; }
+  .jf-line { width:1px; flex:1; background:var(--color-border); margin:2px auto; min-height:12px; }
+  .jf-card { flex:1; background:var(--color-bg3); border-radius:8px; border:0.5px solid var(--color-border); padding:8px 12px; margin-bottom:4px; }
+  .jf-stage-lbl { font-size:10px; font-weight:600; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.6px; }
+  .jf-match { font-size:13px; font-weight:600; color:var(--color-text); margin:2px 0; }
+  .jf-venue { font-size:11px; color:var(--color-muted); }
+  .jf-W { color:#22c55e; font-size:11px; font-weight:600; }
+  .jf-D { color:#f59e0b; font-size:11px; font-weight:600; }
+  .jf-L { color:#ef4444; font-size:11px; font-weight:600; }
+
+  /* TWO COL */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1rem; }
+
+  /* CHARTS */
+  .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1rem; }
+  .chart-card { background:var(--color-card); border-radius:var(--radius-lg); border:0.5px solid var(--color-border); padding:1rem; }
+  .chart-lbl { font-size:12px; color:var(--color-muted); margin-bottom:8px; }
+
+  /* BIG WINS */
+  .bigwin-wrap { background:var(--color-card); border-radius:var(--radius-lg); border:0.5px solid var(--color-border); padding:1rem; margin-bottom:1rem; }
+  .bw-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+  .bw-stat { background:var(--color-bg3); border-radius:8px; padding:10px 12px; border:0.5px solid var(--color-border); }
+  .bw-lbl { font-size:11px; color:var(--color-muted); }
+  .bw-val { font-size:18px; font-weight:600; color:var(--color-text); }
+
+  /* GEO */
+  .geo-wrap { background:var(--color-card); border-radius:var(--radius-lg); border:0.5px solid var(--color-border); padding:1rem; margin-bottom:1rem; }
+  .geo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; }
+  .geo-card { background:var(--color-bg3); border-radius:8px; border:0.5px solid var(--color-border); padding:10px 12px; }
+  .geo-country { font-size:12px; font-weight:600; color:var(--color-text); margin-bottom:6px; }
+  .geo-winbar-bg { height:5px; background:rgba(255,255,255,0.08); border-radius:3px; margin-bottom:6px; overflow:hidden; }
+  .geo-winbar-fill { height:100%; border-radius:3px; background:#22c55e; }
+  .geo-stats { display:flex; gap:8px; }
+  .geo-s { font-size:11px; color:var(--color-muted); }
+  .geo-s span { font-weight:600; color:var(--color-text); }
+  .geo-mem { font-size:10px; color:var(--color-muted); margin-top:4px; }
+
+  /* ERA */
+  .era-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:1rem; }
+  .era-card { background:var(--color-card); border-radius:var(--radius-lg); border:0.5px solid var(--color-border); padding:14px; }
+  .era-name { font-size:13px; font-weight:600; color:var(--color-text); margin-bottom:2px; }
+  .era-years { font-size:11px; color:var(--color-muted); margin-bottom:10px; }
+  .era-metric { display:flex; justify-content:space-between; font-size:12px; padding:4px 0; border-bottom:0.5px solid var(--color-border); }
+  .era-metric:last-child { border-bottom:none; }
+  .em-lbl { color:var(--color-muted); }
+  .em-val { font-weight:600; color:var(--color-text); }
+
+  /* FOOTER */
+  .footer { text-align:center; padding:1.5rem 0 0.5rem; font-size:11px; color:var(--color-muted); border-top:0.5px solid var(--color-border); margin-top:1rem; }
+  .footer strong { color:var(--color-yellow); }
+
+  @media(max-width:700px){
+    .hdr-kpis { grid-template-columns:repeat(3,1fr); }
+    .charts-grid, .two-col { grid-template-columns:1fr; }
+    .bw-stats { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="db">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-top">
+      <span class="flag">🇧🇷</span>
+      <div>
+        <div class="hdr-title">Brazil FIFA World Cup Journey (1930–2022)</div>
+        <div class="hdr-sub">"Mapping Brazil's victories, challenges, and global football legacy through geography and data"</div>
+      </div>
+    </div>
+    <div class="hdr-kpis">
+      <div class="hdr-kpi"><div class="lbl">Titles Won</div><div class="val">5 🏆</div></div>
+      <div class="hdr-kpi"><div class="lbl">Tournaments</div><div class="val">22</div></div>
+      <div class="hdr-kpi"><div class="lbl">Matches Played</div><div class="val">114</div></div>
+      <div class="hdr-kpi"><div class="lbl">Win Rate</div><div class="val">67%</div></div>
+      <div class="hdr-kpi"><div class="lbl">Goals Scored</div><div class="val">229</div></div>
+    </div>
+  </div>
+
+  <!-- AUTHOR BADGE -->
+  <div class="author-bar">
+    <div style="font-size:11px;color:var(--color-muted);margin-right:auto">GIS &amp; Football Analytics Dashboard</div>
+    <div class="author-avatar">FA</div>
+    <div class="author-info">
+      <div class="author-name">Farabi Akash</div>
+      <div class="author-role">Geospatial Engineer</div>
+    </div>
+    <div class="author-badge">🌍 GIS Portfolio</div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-bar">
+    <select id="f-year" onchange="applyFilters()"><option value="">All years</option></select>
+    <select id="f-stage" onchange="applyFilters()">
+      <option value="">All stages</option>
+      <option>Group Stage</option><option>Round of 16</option><option>Quarter Final</option><option>Semi Final</option><option>Final</option><option>3rd Place</option><option>Final Pool</option>
+    </select>
+    <select id="f-result" onchange="applyFilters()">
+      <option value="">All results</option>
+      <option value="W">Victories</option><option value="D">Draws</option><option value="L">Defeats</option>
+    </select>
+    <select id="f-opponent" onchange="applyFilters()"><option value="">All opponents</option></select>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-wrap">
+    <div class="sec-title">Interactive world match map — hover markers for details</div>
+    <div class="map-controls">
+      <button class="mc-btn active" onclick="setMapMode('all',this)">All matches</button>
+      <button class="mc-btn" onclick="setMapMode('wins',this)">Victories</button>
+      <button class="mc-btn" onclick="setMapMode('losses',this)">Defeats</button>
+      <button class="mc-btn" onclick="setMapMode('choropleth',this)">Host performance</button>
+    </div>
+    <div id="world-map"><div id="map-tooltip"></div></div>
+    <div class="map-legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div>Victory</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>Draw</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Defeat</div>
+      <div style="margin-left:auto;font-size:11px;color:var(--color-muted)">Marker size = match importance (Final largest)</div>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="sec-title">Brazil World Cup Statistics</div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-icon">🏆</div><div class="kpi-lbl">Titles</div><div class="kpi-val">5</div><div class="kpi-sub">1958 · 62 · 70 · 94 · 02</div></div>
+    <div class="kpi-card"><div class="kpi-icon">⚽</div><div class="kpi-lbl">Matches</div><div class="kpi-val">114</div><div class="kpi-sub">All editions</div></div>
+    <div class="kpi-card"><div class="kpi-icon">✅</div><div class="kpi-lbl">Wins</div><div class="kpi-val">76</div><div class="kpi-sub">66.7%</div></div>
+    <div class="kpi-card"><div class="kpi-icon">🤝</div><div class="kpi-lbl">Draws</div><div class="kpi-val">19</div><div class="kpi-sub">16.7%</div></div>
+    <div class="kpi-card"><div class="kpi-icon">❌</div><div class="kpi-lbl">Losses</div><div class="kpi-val">19</div><div class="kpi-sub">16.7%</div></div>
+    <div class="kpi-card"><div class="kpi-icon">🥅</div><div class="kpi-lbl">Goals Scored</div><div class="kpi-val">229</div><div class="kpi-sub">2.0 per match</div></div>
+    <div class="kpi-card"><div class="kpi-icon">🛡️</div><div class="kpi-lbl">Conceded</div><div class="kpi-val">105</div><div class="kpi-sub">0.9 per match</div></div>
+    <div class="kpi-card"><div class="kpi-icon">📈</div><div class="kpi-lbl">Win %</div><div class="kpi-val">67%</div><div class="kpi-sub">Best in history</div></div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline-wrap">
+    <div class="sec-title">Tournament timeline — drag to explore each edition</div>
+    <div class="tl-slider-row">
+      <div class="tl-year-lbl" id="tl-year-display">2002</div>
+      <input type="range" id="tl-slider" min="0" max="21" value="18" step="1" oninput="updateTimeline(this.value)">
+    </div>
+    <div id="tl-content"></div>
+  </div>
+
+  <!-- JOURNEY + GEO -->
+  <div class="two-col">
+    <div>
+      <div class="sec-title">Tournament route</div>
+      <div class="journey-wrap"><div id="journey-flow"></div></div>
+    </div>
+    <div>
+      <div class="sec-title">Performance by host nation</div>
+      <div class="geo-wrap"><div class="geo-grid" id="geo-perf-grid"></div></div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="sec-title">Performance trends (1930–2022)</div>
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-lbl">Win / draw / loss per tournament</div>
+      <div style="position:relative;height:220px"><canvas id="wdl-chart" role="img" aria-label="Brazil wins draws losses per World Cup 1930 to 2022"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-lbl">Goals scored vs conceded per tournament</div>
+      <div style="position:relative;height:220px"><canvas id="goals-chart" role="img" aria-label="Brazil goals scored and conceded per World Cup 1930 to 2022"></canvas></div>
+    </div>
+  </div>
+
+  <!-- BIG WINS -->
+  <div class="sec-title">Brazil's dominant victories (winning margin ≥ 3 goals)</div>
+  <div class="bigwin-wrap">
+    <div class="bw-stats">
+      <div class="bw-stat"><div class="bw-lbl">Total big wins</div><div class="bw-val">28</div></div>
+      <div class="bw-stat"><div class="bw-lbl">Big win ratio</div><div class="bw-val">37%</div></div>
+      <div class="bw-stat"><div class="bw-lbl">Avg margin</div><div class="bw-val">3.8</div></div>
+      <div class="bw-stat"><div class="bw-lbl">Biggest victory</div><div class="bw-val">7–1 🇸🇪</div></div>
+    </div>
+    <div style="position:relative;height:260px"><canvas id="bigwin-chart" role="img" aria-label="Top 10 biggest Brazil World Cup victories by goal margin"></canvas></div>
+  </div>
+
+  <!-- ERA COMPARISON -->
+  <div class="sec-title">Golden generation comparison</div>
+  <div class="era-grid" id="era-grid"></div>
+
+  <!-- FOOTER / AUTHOR -->
+  <div class="footer">
+    <div style="margin-bottom:6px">
+      🇧🇷 <strong>Brazil FIFA World Cup Journey Dashboard (1930–2022)</strong>
+    </div>
+    <div>Designed &amp; developed by <strong>Farabi Akash</strong> · Geospatial Engineer</div>
+    <div style="margin-top:4px">Data Sources: FIFA, RSSSF, World Football · Visualization: D3.js, Chart.js, TopoJSON</div>
+    <div style="margin-top:4px;opacity:0.6">© 2024 Farabi Akash — GIS &amp; Spatial Data Science Portfolio</div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+
+const TOURNAMENTS = [
+  { year:1930, host:'Uruguay',       result:'Semi Final',   outcome:'semi',    matches:4, w:3,d:0,l:1, gf:8,  ga:4,  topScorer:'Preguinho',      notes:'Lost to Yugoslavia in semi-final' },
+  { year:1934, host:'Italy',         result:'1st Round',    outcome:'early',   matches:1, w:0,d:0,l:1, gf:1,  ga:3,  topScorer:'Leonidas',        notes:'Eliminated in the first round' },
+  { year:1938, host:'France',        result:'3rd Place',    outcome:'semi',    matches:5, w:3,d:1,l:1, gf:14, ga:11, topScorer:'Leonidas (8)',    notes:'Leonidas top scorer, 3rd place' },
+  { year:1950, host:'Brazil',        result:'Runner-up',    outcome:'runner',  matches:6, w:4,d:1,l:1, gf:22, ga:6,  topScorer:'Zizinho',        notes:'The Maracanazo — lost final to Uruguay' },
+  { year:1954, host:'Switzerland',   result:'Quarter Final',outcome:'quarter', matches:3, w:1,d:1,l:1, gf:8,  ga:5,  topScorer:'Julinho',        notes:'Lost to Hungary in violent match' },
+  { year:1958, host:'Sweden',        result:'Champion 🏆',  outcome:'champion',matches:6, w:5,d:1,l:0, gf:16, ga:4,  topScorer:'Pelé (6)',       notes:'17-year-old Pelé stuns the world' },
+  { year:1962, host:'Chile',         result:'Champion 🏆',  outcome:'champion',matches:6, w:5,d:1,l:0, gf:14, ga:5,  topScorer:'Garrincha',      notes:'Garrincha leads after Pelé injury' },
+  { year:1966, host:'England',       result:'Group Stage',  outcome:'group',   matches:3, w:1,d:0,l:2, gf:4,  ga:6,  topScorer:'Pelé',           notes:'Pelé brutally fouled, early exit' },
+  { year:1970, host:'Mexico',        result:'Champion 🏆',  outcome:'champion',matches:6, w:6,d:0,l:0, gf:19, ga:7,  topScorer:'Jairzinho (7)', notes:'Greatest team ever — 100% wins' },
+  { year:1974, host:'Germany',       result:'4th Place',    outcome:'semi',    matches:7, w:3,d:2,l:2, gf:6,  ga:4,  topScorer:'Rivelino',       notes:'Lost 3rd place playoff to Poland' },
+  { year:1978, host:'Argentina',     result:'3rd Place',    outcome:'semi',    matches:7, w:4,d:3,l:0, gf:10, ga:3,  topScorer:'Reinaldo',       notes:'Unbeaten throughout, 3rd place' },
+  { year:1982, host:'Spain',         result:'2nd Round',    outcome:'quarter', matches:5, w:4,d:0,l:1, gf:15, ga:6,  topScorer:'Zico (4)',       notes:'Iconic side, lost to Italy 2-3' },
+  { year:1986, host:'Mexico',        result:'Quarter Final',outcome:'quarter', matches:5, w:4,d:0,l:1, gf:10, ga:6,  topScorer:'Careca (5)',     notes:'Lost to France on penalties' },
+  { year:1990, host:'Italy',         result:'Round of 16',  outcome:'quarter', matches:4, w:3,d:0,l:1, gf:4,  ga:2,  topScorer:'Müller (3)',     notes:'Lost to Argentina 0-1' },
+  { year:1994, host:'USA',           result:'Champion 🏆',  outcome:'champion',matches:7, w:5,d:2,l:0, gf:11, ga:3,  topScorer:'Romário (5)',    notes:'Romário & Bebeto golden duo' },
+  { year:1998, host:'France',        result:'Runner-up',    outcome:'runner',  matches:7, w:4,d:1,l:2, gf:14, ga:10, topScorer:'Ronaldo (4)',    notes:'Ronaldo mystery before final' },
+  { year:2002, host:'Japan/Korea',   result:'Champion 🏆',  outcome:'champion',matches:7, w:7,d:0,l:0, gf:18, ga:4,  topScorer:'Ronaldo (8)',    notes:'Ronaldo 8 goals — all-time record' },
+  { year:2006, host:'Germany',       result:'Quarter Final',outcome:'quarter', matches:5, w:3,d:1,l:1, gf:10, ga:3,  topScorer:'Ronaldo (3)',    notes:'Ronaldo breaks all-time WC record' },
+  { year:2010, host:'South Africa',  result:'Quarter Final',outcome:'quarter', matches:5, w:3,d:1,l:1, gf:9,  ga:4,  topScorer:'Maicon (2)',     notes:'Lost to Netherlands 1-2' },
+  { year:2014, host:'Brazil',        result:'4th Place',    outcome:'semi',    matches:7, w:4,d:0,l:3, gf:11, ga:14, topScorer:'Neymar (4)',     notes:'The 7-1 Mineirazo vs Germany' },
+  { year:2018, host:'Russia',        result:'Quarter Final',outcome:'quarter', matches:5, w:3,d:1,l:1, gf:8,  ga:3,  topScorer:'Neymar (2)',     notes:'Lost to Belgium 1-2' },
+  { year:2022, host:'Qatar',         result:'Quarter Final',outcome:'quarter', matches:5, w:3,d:1,l:1, gf:8,  ga:3,  topScorer:'Richarlison (3)','notes':'Lost to Croatia on penalties' },
+];
+
+const MATCHES = [
+  { year:2014, stage:'Group Stage',  opponent:'Croatia',     score:'3–1',       result:'W', city:'São Paulo',       country:'Brazil',      lat:-23.5558, lon:-46.6396, stadium:'Arena Corinthians' },
+  { year:2014, stage:'Group Stage',  opponent:'Mexico',      score:'0–0',       result:'D', city:'Fortaleza',        country:'Brazil',      lat:-3.7172,  lon:-38.5434, stadium:'Estádio Castelão' },
+  { year:2014, stage:'Group Stage',  opponent:'Cameroon',    score:'4–1',       result:'W', city:'Brasília',         country:'Brazil',      lat:-15.7803, lon:-47.9292, stadium:'Estádio Nacional' },
+  { year:2014, stage:'Round of 16',  opponent:'Chile',       score:'1–1 (pens)',result:'W', city:'Belo Horizonte',  country:'Brazil',      lat:-19.9167, lon:-43.9345, stadium:'Estádio Mineirão' },
+  { year:2014, stage:'Quarter Final',opponent:'Colombia',    score:'2–1',       result:'W', city:'Fortaleza',        country:'Brazil',      lat:-3.7172,  lon:-38.5434, stadium:'Estádio Castelão' },
+  { year:2014, stage:'Semi Final',   opponent:'Germany',     score:'1–7',       result:'L', city:'Belo Horizonte',  country:'Brazil',      lat:-19.9167, lon:-43.9345, stadium:'Mineirão' },
+  { year:2014, stage:'3rd Place',    opponent:'Netherlands', score:'0–3',       result:'L', city:'Brasília',         country:'Brazil',      lat:-15.7803, lon:-47.9292, stadium:'Estádio Nacional' },
+  { year:2002, stage:'Group Stage',  opponent:'Turkey',      score:'2–1',       result:'W', city:'Ulsan',            country:'South Korea', lat:35.5396,  lon:129.3114, stadium:'Ulsan Munsu' },
+  { year:2002, stage:'Group Stage',  opponent:'China',       score:'4–0',       result:'W', city:'Seogwipo',         country:'South Korea', lat:33.2530,  lon:126.5600, stadium:'Jeju World Cup' },
+  { year:2002, stage:'Group Stage',  opponent:'Costa Rica',  score:'5–2',       result:'W', city:'Suwon',            country:'South Korea', lat:37.2636,  lon:127.0286, stadium:'Suwon World Cup' },
+  { year:2002, stage:'Round of 16',  opponent:'Belgium',     score:'2–0',       result:'W', city:'Kobe',             country:'Japan',       lat:34.6901,  lon:135.1955, stadium:'Kobe Wing Stadium' },
+  { year:2002, stage:'Quarter Final',opponent:'England',     score:'2–1',       result:'W', city:'Shizuoka',         country:'Japan',       lat:34.9769,  lon:138.3831, stadium:'Shizuoka Stadium' },
+  { year:2002, stage:'Semi Final',   opponent:'Turkey',      score:'1–0',       result:'W', city:'Saitama',          country:'Japan',       lat:35.9083,  lon:139.6556, stadium:'Saitama Stadium' },
+  { year:2002, stage:'Final',        opponent:'Germany',     score:'2–0',       result:'W', city:'Yokohama',         country:'Japan',       lat:35.4437,  lon:139.6380, stadium:'Int\'l Stadium Yokohama' },
+  { year:1970, stage:'Group Stage',  opponent:'Czechoslovakia',score:'4–1',     result:'W', city:'Guadalajara',      country:'Mexico',      lat:20.6597,  lon:-103.3496,stadium:'Estadio Jalisco' },
+  { year:1970, stage:'Group Stage',  opponent:'England',     score:'1–0',       result:'W', city:'Guadalajara',      country:'Mexico',      lat:20.6597,  lon:-103.3496,stadium:'Estadio Jalisco' },
+  { year:1970, stage:'Group Stage',  opponent:'Romania',     score:'3–2',       result:'W', city:'Guadalajara',      country:'Mexico',      lat:20.6597,  lon:-103.3496,stadium:'Estadio Jalisco' },
+  { year:1970, stage:'Quarter Final',opponent:'Peru',        score:'4–2',       result:'W', city:'Guadalajara',      country:'Mexico',      lat:20.6597,  lon:-103.3496,stadium:'Estadio Jalisco' },
+  { year:1970, stage:'Semi Final',   opponent:'Uruguay',     score:'3–1',       result:'W', city:'Guadalajara',      country:'Mexico',      lat:20.6597,  lon:-103.3496,stadium:'Estadio Jalisco' },
+  { year:1970, stage:'Final',        opponent:'Italy',       score:'4–1',       result:'W', city:'Mexico City',      country:'Mexico',      lat:19.4326,  lon:-99.1332, stadium:'Estadio Azteca' },
+  { year:1958, stage:'Group Stage',  opponent:'Austria',     score:'3–0',       result:'W', city:'Borås',            country:'Sweden',      lat:57.7210,  lon:12.9401,  stadium:'Ryavallen' },
+  { year:1958, stage:'Group Stage',  opponent:'England',     score:'0–0',       result:'D', city:'Gothenburg',       country:'Sweden',      lat:57.7089,  lon:11.9746,  stadium:'Ullevi' },
+  { year:1958, stage:'Group Stage',  opponent:'Soviet Union',score:'2–0',       result:'W', city:'Gothenburg',       country:'Sweden',      lat:57.7089,  lon:11.9746,  stadium:'Ullevi' },
+  { year:1958, stage:'Quarter Final',opponent:'Wales',       score:'1–0',       result:'W', city:'Gothenburg',       country:'Sweden',      lat:57.7089,  lon:11.9746,  stadium:'Ullevi' },
+  { year:1958, stage:'Semi Final',   opponent:'France',      score:'5–2',       result:'W', city:'Stockholm',        country:'Sweden',      lat:59.3293,  lon:18.0686,  stadium:'Råsunda' },
+  { year:1958, stage:'Final',        opponent:'Sweden',      score:'5–2',       result:'W', city:'Stockholm',        country:'Sweden',      lat:59.3293,  lon:18.0686,  stadium:'Råsunda' },
+  { year:1994, stage:'Group Stage',  opponent:'Russia',      score:'2–0',       result:'W', city:'Stanford',         country:'USA',         lat:37.4419,  lon:-122.1430,stadium:'Stanford Stadium' },
+  { year:1994, stage:'Group Stage',  opponent:'Cameroon',    score:'3–0',       result:'W', city:'Stanford',         country:'USA',         lat:37.4419,  lon:-122.1430,stadium:'Stanford Stadium' },
+  { year:1994, stage:'Group Stage',  opponent:'Sweden',      score:'1–1',       result:'D', city:'Detroit',          country:'USA',         lat:42.3314,  lon:-83.0458, stadium:'Pontiac Silverdome' },
+  { year:1994, stage:'Round of 16',  opponent:'USA',         score:'1–0',       result:'W', city:'Stanford',         country:'USA',         lat:37.4419,  lon:-122.1430,stadium:'Stanford Stadium' },
+  { year:1994, stage:'Quarter Final',opponent:'Netherlands', score:'3–2',       result:'W', city:'Dallas',           country:'USA',         lat:32.7767,  lon:-96.7970, stadium:'Cotton Bowl' },
+  { year:1994, stage:'Semi Final',   opponent:'Sweden',      score:'1–0',       result:'W', city:'Pasadena',         country:'USA',         lat:34.1478,  lon:-118.1445,stadium:'Rose Bowl' },
+  { year:1994, stage:'Final',        opponent:'Italy',       score:'0–0 (pens)',result:'W', city:'Pasadena',         country:'USA',         lat:34.1478,  lon:-118.1445,stadium:'Rose Bowl' },
+  { year:1950, stage:'Group Stage',  opponent:'Mexico',      score:'4–0',       result:'W', city:'Rio de Janeiro',   country:'Brazil',      lat:-22.9068, lon:-43.1729, stadium:'Maracanã' },
+  { year:1950, stage:'Group Stage',  opponent:'Switzerland', score:'2–2',       result:'D', city:'São Paulo',        country:'Brazil',      lat:-23.5558, lon:-46.6396, stadium:'Pacaembu' },
+  { year:1950, stage:'Group Stage',  opponent:'Yugoslavia',  score:'2–0',       result:'W', city:'Rio de Janeiro',   country:'Brazil',      lat:-22.9068, lon:-43.1729, stadium:'Maracanã' },
+  { year:1950, stage:'Final Pool',   opponent:'Sweden',      score:'7–1',       result:'W', city:'São Paulo',        country:'Brazil',      lat:-23.5558, lon:-46.6396, stadium:'Pacaembu' },
+  { year:1950, stage:'Final Pool',   opponent:'Spain',       score:'6–1',       result:'W', city:'Rio de Janeiro',   country:'Brazil',      lat:-22.9068, lon:-43.1729, stadium:'Maracanã' },
+  { year:1950, stage:'Final Pool',   opponent:'Uruguay',     score:'1–2',       result:'L', city:'Rio de Janeiro',   country:'Brazil',      lat:-22.9068, lon:-43.1729, stadium:'Maracanã' },
+  { year:1998, stage:'Group Stage',  opponent:'Scotland',    score:'2–1',       result:'W', city:'Saint-Denis',      country:'France',      lat:48.9244,  lon:2.3601,   stadium:'Stade de France' },
+  { year:1998, stage:'Group Stage',  opponent:'Morocco',     score:'3–0',       result:'W', city:'Nantes',           country:'France',      lat:47.2184,  lon:-1.5536,  stadium:'Stade de la Beaujoire' },
+  { year:1998, stage:'Group Stage',  opponent:'Norway',      score:'1–2',       result:'L', city:'Marseille',        country:'France',      lat:43.2965,  lon:5.3698,   stadium:'Stade Vélodrome' },
+  { year:1998, stage:'Round of 16',  opponent:'Chile',       score:'4–1',       result:'W', city:'Paris',            country:'France',      lat:48.8566,  lon:2.3522,   stadium:'Parc des Princes' },
+  { year:1998, stage:'Quarter Final',opponent:'Denmark',     score:'3–2',       result:'W', city:'Nantes',           country:'France',      lat:47.2184,  lon:-1.5536,  stadium:'Stade de la Beaujoire' },
+  { year:1998, stage:'Semi Final',   opponent:'Netherlands', score:'1–1 (pens)',result:'W', city:'Marseille',        country:'France',      lat:43.2965,  lon:5.3698,   stadium:'Stade Vélodrome' },
+  { year:1998, stage:'Final',        opponent:'France',      score:'0–3',       result:'L', city:'Saint-Denis',      country:'France',      lat:48.9244,  lon:2.3601,   stadium:'Stade de France' },
+];
+
+const GEO_PERF = [
+  { country:'Brazil (1950 / 2014)',   matches:13, wins:8,  wr:62,  goals:33, memorable:'1950 Runner-up · 2014 4th place' },
+  { country:'Mexico (1970 / 1986)',   matches:12, wins:10, wr:83,  goals:29, memorable:'1970 Champion · 1986 QF' },
+  { country:'Sweden (1958)',          matches:6,  wins:5,  wr:83,  goals:16, memorable:'1958 World Champion' },
+  { country:'Japan / Korea (2002)',   matches:7,  wins:7,  wr:100, goals:18, memorable:'2002 World Champion' },
+  { country:'USA (1994)',             matches:7,  wins:5,  wr:71,  goals:11, memorable:'1994 World Champion' },
+  { country:'France (1998)',          matches:7,  wins:4,  wr:57,  goals:14, memorable:'1998 Runner-up' },
+  { country:'Germany (1974 / 2006)',  matches:12, wins:6,  wr:50,  goals:16, memorable:'1974 4th · 2006 QF' },
+  { country:'Italy (1934 / 1990)',    matches:5,  wins:3,  wr:60,  goals:5,  memorable:'Mixed results' },
+  { country:'Spain (1982)',           matches:5,  wins:4,  wr:80,  goals:15, memorable:'1982 2nd Round exit' },
+  { country:'Argentina (1978)',       matches:7,  wins:4,  wr:57,  goals:10, memorable:'1978 3rd Place' },
+  { country:'Russia (2018)',          matches:5,  wins:3,  wr:60,  goals:8,  memorable:'2018 Quarter Final' },
+  { country:'Qatar (2022)',           matches:5,  wins:3,  wr:60,  goals:8,  memorable:'2022 Quarter Final' },
+];
+
+const ERAS = [
+  { name:'Pelé era',    years:'1958–1970', player:'Pelé',      matches:18, wr:94, gpm:1.94, titles:3 },
+  { name:'Zico era',   years:'1982',       player:'Zico',      matches:5,  wr:80, gpm:3.0,  titles:0 },
+  { name:'Romário era',years:'1994',       player:'Romário',   matches:7,  wr:71, gpm:1.57, titles:1 },
+  { name:'Ronaldo era',years:'1998–2006',  player:'Ronaldo',   matches:19, wr:74, gpm:1.89, titles:1 },
+  { name:'Neymar era', years:'2014–2022',  player:'Neymar',    matches:17, wr:65, gpm:1.59, titles:0 },
+];
+
+const BIG_WINS = [
+  { label:'BRA 7–1 SWE (1950)', margin:6 },
+  { label:'BRA 6–1 ESP (1950)', margin:5 },
+  { label:'BRA 5–0 MEX (1962)', margin:5 },
+  { label:'BRA 4–0 CHN (2002)', margin:4 },
+  { label:'BRA 4–0 MEX (1950)', margin:4 },
+  { label:'BRA 5–2 FRA (1958)', margin:3 },
+  { label:'BRA 4–1 ITA (1970)', margin:3 },
+  { label:'BRA 4–1 CRO (2014)', margin:2 },
+  { label:'BRA 3–0 CMR (1994)', margin:3 },
+  { label:'BRA 4–1 AUT (1958)', margin:3 },
+];
+
+const stageSize = { 'Final':15,'Semi Final':12,'Quarter Final':10,'3rd Place':9,'Final Pool':9,'Round of 16':8,'Group Stage':6 };
+const resultColor = { W:'#22c55e', D:'#f59e0b', L:'#ef4444' };
+
+let filterYear='', filterStage='', filterResult='', filterOpponent='';
+let mapMode='all';
+let worldData=null;
+
+// POPULATE FILTERS
+const years=[...new Set(MATCHES.map(m=>m.year))].sort((a,b)=>a-b);
+const selY=document.getElementById('f-year');
+years.forEach(y=>{ const o=document.createElement('option');o.value=y;o.textContent=y;selY.appendChild(o); });
+const opps=[...new Set(MATCHES.map(m=>m.opponent))].sort();
+const selO=document.getElementById('f-opponent');
+opps.forEach(o=>{ const op=document.createElement('option');op.value=o;op.textContent=o;selO.appendChild(op); });
+
+function applyFilters(){
+  filterYear=document.getElementById('f-year').value;
+  filterStage=document.getElementById('f-stage').value;
+  filterResult=document.getElementById('f-result').value;
+  filterOpponent=document.getElementById('f-opponent').value;
+  renderMap();
+}
+
+// MAP
+function renderMap(){
+  const container=document.getElementById('world-map');
+  container.innerHTML='<div id="map-tooltip"></div>';
+  const W=container.offsetWidth||900;
+  const H=360;
+  const svg=d3.select('#world-map').append('svg').attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height',H);
+  const proj=d3.geoNaturalEarth1().scale(W/6.2).translate([W/2,H/2]);
+  const pathGen=d3.geoPath(proj);
+
+  if(worldData){ drawGeo(svg,pathGen,worldData); drawMatches(svg,proj); }
+  else {
+    d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+      worldData=world;
+      drawGeo(svg,pathGen,world);
+      drawMatches(svg,proj);
+    }).catch(()=>{
+      svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').attr('fill','#7a9e7e').attr('font-size',13).text('Loading map data…');
+    });
+  }
+}
+
+function drawGeo(svg,pathGen,world){
+  const features=topojson.feature(world,world.objects.countries).features;
+  svg.selectAll('.country').data(features).join('path')
+    .attr('class','country').attr('d',pathGen)
+    .attr('fill', mapMode==='choropleth'?'#1a3d1e':'#122115')
+    .attr('stroke','rgba(255,255,255,0.08)').attr('stroke-width',0.3);
+}
+
+function drawMatches(svg,proj){
+  let filtered=MATCHES;
+  if(filterYear)   filtered=filtered.filter(m=>m.year==filterYear);
+  if(filterStage)  filtered=filtered.filter(m=>m.stage===filterStage);
+  if(filterResult) filtered=filtered.filter(m=>m.result===filterResult);
+  if(filterOpponent) filtered=filtered.filter(m=>m.opponent===filterOpponent);
+  if(mapMode==='wins')   filtered=filtered.filter(m=>m.result==='W');
+  if(mapMode==='losses') filtered=filtered.filter(m=>m.result==='L');
+
+  const tooltip=document.getElementById('map-tooltip');
+
+  filtered.forEach(m=>{
+    const coords=proj([m.lon,m.lat]);
+    if(!coords) return;
+    const [x,y]=coords;
+    const r=stageSize[m.stage]||6;
+    const c=resultColor[m.result]||'#888';
+
+    const circle=svg.append('circle')
+      .attr('cx',x).attr('cy',y).attr('r',r)
+      .attr('fill',c).attr('fill-opacity',0.8)
+      .attr('stroke','rgba(255,255,255,0.5)').attr('stroke-width',0.8)
+      .style('cursor','pointer');
+
+    circle.on('mouseover',function(event){
+      d3.select(this).attr('r',r+4).attr('fill-opacity',1);
+      const parts=m.score.replace(/\(.*\)/,'').split('–');
+      const diff=parseInt(parts[0]||0)-parseInt(parts[1]||0);
+      tooltip.innerHTML=`
+        <div class="tt-year">${m.year} World Cup — ${m.stage}</div>
+        <div style="font-size:11px;color:#7a9e7e;margin:2px 0">${m.stadium}, ${m.city}</div>
+        <div class="tt-score">🇧🇷 Brazil ${m.score} ${m.opponent}</div>
+        <div class="tt-${m.result}" style="font-size:12px">
+          ${m.result==='W'?'✅ Victory':m.result==='D'?'🤝 Draw':'❌ Defeat'}
+          ${m.result!=='D'?' · Goal diff: '+(m.result==='W'?'+':'')+diff:''}
+        </div>`;
+      tooltip.style.opacity='1';
+      const rect=container.getBoundingClientRect();
+      let tx=event.clientX-rect.left+12;
+      let ty=event.clientY-rect.top-40;
+      if(tx+240>rect.width) tx=tx-252;
+      if(ty<0) ty=10;
+      tooltip.style.left=tx+'px';
+      tooltip.style.top=ty+'px';
+    }).on('mouseout',function(){
+      d3.select(this).attr('r',r).attr('fill-opacity',0.8);
+      tooltip.style.opacity='0';
+    });
+  });
+  const container=document.getElementById('world-map');
+}
+
+function setMapMode(mode,btn){
+  mapMode=mode;
+  document.querySelectorAll('.mc-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMap();
+}
+
+// TIMELINE
+function updateTimeline(idx){
+  const t=TOURNAMENTS[idx];
+  document.getElementById('tl-year-display').textContent=t.year;
+  const oc=t.outcome;
+  const cls=oc==='champion'?'ob-champion':oc==='runner'?'ob-runner':oc==='semi'?'ob-semi':oc==='quarter'?'ob-quarter':oc==='group'?'ob-group':'ob-early';
+  document.getElementById('tl-content').innerHTML=`
+    <div class="tl-info">
+      <div class="tl-stat"><div class="ts-lbl">Host</div><div class="ts-val" style="font-size:13px">${t.host}</div></div>
+      <div class="tl-stat"><div class="ts-lbl">Result</div><div class="ts-val" style="font-size:12px">${t.result}</div></div>
+      <div class="tl-stat"><div class="ts-lbl">Matches</div><div class="ts-val">${t.matches}</div></div>
+      <div class="tl-stat"><div class="ts-lbl">W / D / L</div><div class="ts-val">${t.w} / ${t.d} / ${t.l}</div></div>
+      <div class="tl-stat"><div class="ts-lbl">Goals</div><div class="ts-val">${t.gf}–${t.ga}</div></div>
+      <div class="tl-stat"><div class="ts-lbl">Top scorer</div><div class="ts-val" style="font-size:12px">${t.topScorer}</div></div>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:#7a9e7e">${t.notes}</div>
+    <span class="outcome-badge ${cls}">${t.result}</span>`;
+  renderJourneyFlow(t.year);
+}
+
+function renderJourneyFlow(year){
+  const matches=MATCHES.filter(m=>m.year===year);
+  const el=document.getElementById('journey-flow');
+  if(!matches.length){ el.innerHTML='<div style="font-size:12px;color:#7a9e7e;padding:8px">Detailed match data not available for this edition.</div>'; return; }
+  el.innerHTML=matches.map((m,i)=>{
+    const dot=m.result==='W'?'#22c55e':m.result==='D'?'#f59e0b':'#ef4444';
+    const isLast=i===matches.length-1;
+    return `<div class="jf-stage">
+      <div class="jf-connector">
+        <div class="jf-dot" style="background:${dot}"></div>
+        ${!isLast?'<div class="jf-line"></div>':''}
+      </div>
+      <div class="jf-card">
+        <div class="jf-stage-lbl">${m.stage}</div>
+        <div class="jf-match">Brazil ${m.score} ${m.opponent}</div>
+        <div class="jf-venue">${m.stadium}, ${m.city}</div>
+        <div class="jf-${m.result}">${m.result==='W'?'Victory':m.result==='D'?'Draw':'Defeat'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// GEO PERF
+function renderGeoPerfGrid(){
+  document.getElementById('geo-perf-grid').innerHTML=GEO_PERF.map(g=>`
+    <div class="geo-card">
+      <div class="geo-country">${g.country}</div>
+      <div class="geo-winbar-bg"><div class="geo-winbar-fill" style="width:${g.wr}%"></div></div>
+      <div class="geo-stats">
+        <div class="geo-s">M: <span>${g.matches}</span></div>
+        <div class="geo-s">W: <span>${g.wins}</span></div>
+        <div class="geo-s">WR: <span>${g.wr}%</span></div>
+      </div>
+      <div class="geo-mem">${g.memorable}</div>
+    </div>`).join('');
+}
+
+// ERAS
+function renderEras(){
+  document.getElementById('era-grid').innerHTML=ERAS.map(e=>`
+    <div class="era-card">
+      <div class="era-name">${e.name}</div>
+      <div class="era-years">${e.years}</div>
+      <div class="era-metric"><span class="em-lbl">Matches</span><span class="em-val">${e.matches}</span></div>
+      <div class="era-metric"><span class="em-lbl">Win rate</span><span class="em-val">${e.wr}%</span></div>
+      <div class="era-metric"><span class="em-lbl">Goals / match</span><span class="em-val">${e.gpm}</span></div>
+      <div class="era-metric"><span class="em-lbl">Titles</span><span class="em-val">${e.titles===0?'—':e.titles+' 🏆'}</span></div>
+    </div>`).join('');
+}
+
+// CHARTS
+function initCharts(){
+  const tc='#7a9e7e', gc='rgba(255,255,255,0.05)';
+  const yrs=TOURNAMENTS.map(t=>t.year);
+
+  new Chart(document.getElementById('wdl-chart'),{
+    type:'bar',
+    data:{ labels:yrs, datasets:[
+      { label:'Wins',   data:TOURNAMENTS.map(t=>t.w), backgroundColor:'#22c55e', stack:'s' },
+      { label:'Draws',  data:TOURNAMENTS.map(t=>t.d), backgroundColor:'#f59e0b', stack:'s' },
+      { label:'Losses', data:TOURNAMENTS.map(t=>t.l), backgroundColor:'#ef4444', stack:'s' },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ stacked:true, ticks:{color:tc,font:{size:10},maxRotation:45,maxTicksLimit:9}, grid:{color:gc} },
+        y:{ stacked:true, ticks:{color:tc,font:{size:10}}, grid:{color:gc}, beginAtZero:true }
+      }}
+  });
+
+  new Chart(document.getElementById('goals-chart'),{
+    type:'line',
+    data:{ labels:yrs, datasets:[
+      { label:'Scored',   data:TOURNAMENTS.map(t=>t.gf), borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.08)', borderWidth:2, fill:true, tension:0.3, pointRadius:3 },
+      { label:'Conceded', data:TOURNAMENTS.map(t=>t.ga), borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)', borderWidth:2, fill:true, tension:0.3, pointRadius:3, borderDash:[4,3] },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{color:tc,font:{size:10},maxRotation:45,maxTicksLimit:9}, grid:{color:gc} },
+        y:{ ticks:{color:tc,font:{size:10}}, grid:{color:gc} }
+      }}
+  });
+
+  new Chart(document.getElementById('bigwin-chart'),{
+    type:'bar',
+    data:{ labels:BIG_WINS.map(b=>b.label), datasets:[{
+      label:'Goal margin', data:BIG_WINS.map(b=>b.margin),
+      backgroundColor:BIG_WINS.map((_,i)=>i===0?'#f4e04b':'#22c55e'),
+      borderRadius:4,
+    }]},
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{color:tc,font:{size:10}}, grid:{color:gc}, beginAtZero:true },
+        y:{ ticks:{color:tc,font:{size:10}}, grid:{display:false} }
+      }}
+  });
+}
+
+// INIT
+window.addEventListener('load',()=>{
+  renderMap();
+  updateTimeline(18);
+  renderGeoPerfGrid();
+  renderEras();
+  initCharts();
+});
+</script>
+</body>
+</html>
